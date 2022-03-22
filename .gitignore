@@ -3,6 +3,9 @@
 # Edit at https://www.gitignore.io/?templates=python
 
 ### Python ###
+# Test HTTP API
+rest_api.http
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

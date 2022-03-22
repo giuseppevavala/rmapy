@@ -1,4 +1,5 @@
 import requests
+import json
 from logging import getLogger
 from datetime import datetime
 from typing import Union, Optional
@@ -89,6 +90,9 @@ class Client(object):
                              headers=_headers,
                              params=params,
                              stream=stream)
+
+        assert str(r.status_code)[
+            0] == '2', f"Status code {r.status_code} != 200"
         return r
 
     def register_device(self, code: str):
@@ -162,6 +166,21 @@ class Client(object):
             return True
         else:
             return False
+
+    def get_item(self, path):
+        data = {
+            "http_method": "GET",
+            "relative_path": path
+        }
+        response = self.request(
+            "POST", "/api/v1/signed-urls/downloads", body=data)
+        item_url = json.loads(response.text)['url']
+        resp = requests.get(item_url)
+
+        assert str(resp.status_code)[
+            0] == '2', f"Status code {r.status_code} != 200"
+
+        return resp.text
 
     def get_meta_items(self) -> Collection:
         """Returns a new collection from meta items.
