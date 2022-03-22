@@ -4,6 +4,8 @@ from logging import getLogger
 from datetime import datetime
 from typing import Union, Optional
 from uuid import uuid4
+
+from rmapy.blob import Blob, Tree
 from .collections import Collection
 from .config import load, dump
 from .document import Document, ZipDocument, from_request_stream
@@ -38,6 +40,7 @@ class Client(object):
 
     def __init__(self):
         config = load()
+        self.tree = Tree()
         if "devicetoken" in config:
             self.token_set["devicetoken"] = config["devicetoken"]
         if "usertoken" in config:
@@ -166,6 +169,35 @@ class Client(object):
             return True
         else:
             return False
+
+    def reload_tree_cache(self):
+        """Relead tree from cache
+        """
+        global tree
+        tree = Tree.load_cache_file()
+
+        return tree
+
+    def refresh_tree(self):
+        """reload all the remarkable blob
+        """
+        root_dir = self.get_item("root")
+        items = self.get_item(root_dir).split("\n")[1:-1]
+
+        # TODO create pool connection to fast
+        for item in items:
+            item_path = item.split(":")[0]
+            file_uuid = item.split(":")[2]
+            blob_components = self.get_item(item_path).split("\n")[1:]
+            for blob in blob_components:
+                if f"{file_uuid}.metadata:" in blob:
+                    metadata_path = blob.split(":")[0]
+                    break
+            metadata = self.get_item(metadata_path)
+            metadata = json.loads(metadata)
+
+            self.tree.add_blob(Blob(file_uuid, blob_components, metadata))
+        self.tree.save_to_file()
 
     def get_item(self, path):
         data = {
