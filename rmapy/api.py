@@ -198,6 +198,7 @@ class Client(object):
 
             self.tree.add_blob(Blob(file_uuid, blob_components, metadata))
         self.tree.save_to_file()
+        self.tree.__organize_all_blob()
 
     def get_item(self, path):
         data = {
