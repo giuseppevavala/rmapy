@@ -19,7 +19,7 @@ rmapy = Client()
 
 rmapy.is_auth()
 rmapy.renew_token()
-# rmapy.refresh_tree()
+#rmapy.refresh_tree()
 tree = rmapy.reload_tree_cache()
 
 shell = Shell(tree, rmapy)

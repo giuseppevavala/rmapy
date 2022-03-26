@@ -76,10 +76,10 @@ class Tree:
                 )
 
                 tree.add_blob(blob)
-        tree.__organize_all_blob()
+        tree._organize_all_blob()
         return tree
 
-    def __organize_all_blob(self):
+    def _organize_all_blob(self):
         def parent_filter(parent):
             return lambda blob: blob.metadata["parent"] == parent
 

@@ -148,8 +148,8 @@ class Client(object):
             raise AuthError("Please register a device first")
         token = self.token_set["devicetoken"]
         response = self.request("POST", USER_TOKEN_URL, None, headers={
-                "Authorization": f"Bearer {token}"
-            })
+            "Authorization": f"Bearer {token}"
+        })
         if response.ok:
             self.token_set["usertoken"] = response.text
             dump(self.token_set)
@@ -173,10 +173,9 @@ class Client(object):
     def reload_tree_cache(self):
         """Relead tree from cache
         """
-        global tree
-        tree = Tree.load_cache_file()
+        self.tree = Tree.load_cache_file()
 
-        return tree
+        return self.tree
 
     def refresh_tree(self):
         """reload all the remarkable blob
@@ -198,7 +197,7 @@ class Client(object):
 
             self.tree.add_blob(Blob(file_uuid, blob_components, metadata))
         self.tree.save_to_file()
-        self.tree.__organize_all_blob()
+        self.tree._organize_all_blob()
 
     def get_item(self, path):
         data = {
@@ -214,6 +213,19 @@ class Client(object):
             0] == '2', f"Status code {r.status_code} != 200"
 
         return resp.text
+
+    def download_item(self, item_path, file_path):
+        data = {
+            "http_method": "GET",
+            "relative_path": item_path
+        }
+        response = self.request(
+            "POST", "/api/v1/signed-urls/downloads", body=data)
+        item_url = json.loads(response.text)['url']
+        with requests.get(item_url, stream=True) as re:
+            with open(file_path, 'wb') as f:
+                for chunk in re.iter_content(chunk_size=8192): 
+                    f.write(chunk)
 
     def get_meta_items(self) -> Collection:
         """Returns a new collection from meta items.
@@ -326,7 +338,8 @@ class Client(object):
 
         blob_url_put = self._upload_request(zip_doc)
         zip_doc.dump(zip_doc.zipfile)
-        response = self.request("PUT", blob_url_put, data=zip_doc.zipfile.read())
+        response = self.request("PUT", blob_url_put,
+                                data=zip_doc.zipfile.read())
         # Reset seek
         zip_doc.zipfile.seek(0)
         if response.ok:
@@ -386,8 +399,8 @@ class Client(object):
                            body=[req])
         if not res.ok:
             raise ApiError(
-                     f"upload request failed with status {res.status_code}",
-                     response=res)
+                f"upload request failed with status {res.status_code}",
+                response=res)
         response = res.json()
         if len(response) > 0:
             dest = response[0].get("BlobURLPut", None)
@@ -418,8 +431,8 @@ class Client(object):
                            body=[req])
         if not res.ok:
             raise ApiError(
-                     f"upload request failed with status {res.status_code}",
-                     response=res)
+                f"upload request failed with status {res.status_code}",
+                response=res)
         response = res.json()
         if len(response) > 0:
             dest = response[0].get("BlobURLPut", None)

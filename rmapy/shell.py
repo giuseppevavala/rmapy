@@ -1,6 +1,6 @@
 import json
-from lib2to3.pytree import Base
 import re
+from os import mkdir
 from typing import List
 from rmapy.api import Client
 from rmapy.blob import DIRECTORY, DOCUMENT, Blob, Tree
@@ -18,7 +18,7 @@ class Shell:
         self.WORKING_BLOB: Blob = None
         self.blobs = tree.root_blobls
         self.cmds: List[Cmd] = command_list
-        self.client = Client
+        self.client = client
         self._refresh_work_dir()
 
     def _refresh_work_dir(self):
@@ -80,12 +80,23 @@ def __metadata_cmd(shell: Shell, arg: str):
 
 
 def __download_cmd(shell: Shell, mode: str, blob_num: str):
-    if mode == "all":
-        pass
-    elif mode == "content":
-        pass
-    else:
-        raise Exception("Wrong mode all or content")
+    try:
+        if mode == "all":
+            file_num = int(blob_num) - len(shell.directorys)
+            blob = shell.files[file_num]
+            download_dir = f"./{blob.file_uuid}"
+            mkdir(download_dir)
+            for comp in blob.blob_components:
+                path = comp.split(":")[0]
+                file_path = f"{download_dir}/{comp.split(':')[2].replace('/', '_')}"
+                print (f"Download: {file_path}")
+                shell.client.download_item(path, file_path)
+        elif mode == "content":
+            pass
+        else:
+            raise Exception("Wrong mode all or content")
+    except (ValueError, AssertionError):
+        raise Exception("You need to insert file number")
 
 
 command_list.append(Cmd("ls", __ls_cmd,              "^ls$",
@@ -94,3 +105,5 @@ command_list.append(Cmd("cd", __cd_cmd,              "^cd\s(.*)$",
                     "cd <num> | .. - change current dir"))
 command_list.append(Cmd("metadata", __metadata_cmd,  "^metadata\s(.*)$",
                     "metadata <num> - print metadata of blob"))
+command_list.append(Cmd("download", __download_cmd,  "^download\s(all|content)\s(.*)$",
+                    "download [all | content] <num> - download blob"))
