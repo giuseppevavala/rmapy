@@ -11,7 +11,7 @@ class Blob:
 
     def __init__(self, file_uuid, blob_components, metadata) -> None:
         self.file_uuid = file_uuid
-        self.blob_components = blob_components
+        self.blob_components = list(filter(lambda x: len(x) > 2, blob_components))
         self.metadata = metadata
         self.parent = None
         self.type = DOCUMENT if metadata["type"] == "DocumentType" else DIRECTORY
