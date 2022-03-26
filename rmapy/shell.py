@@ -41,7 +41,7 @@ class Shell:
 command_list = []
 
 
-def ls_cmd(shell: Shell):
+def __ls_cmd(shell: Shell):
     count = 0
     for shell.blob in shell.directorys:
         print(f"{count} - {shell.blob.metadata['visibleName']}/")
@@ -51,7 +51,7 @@ def ls_cmd(shell: Shell):
         count += 1
 
 
-def cd_cmd(shell: Shell, arg: str):
+def __cd_cmd(shell: Shell, arg: str):
     if arg == "..":
         if shell.WORKING_BLOB != None:
             shell.WORKING_BLOB = shell.WORKING_BLOB.parent
@@ -66,7 +66,7 @@ def cd_cmd(shell: Shell, arg: str):
     shell._refresh_work_dir()
 
 
-def metadata_cmd(shell: Shell, arg: str):
+def __metadata_cmd(shell: Shell, arg: str):
     try:
         blob_num = int(arg)
         if (blob_num <= len(shell.directorys)):
@@ -75,13 +75,22 @@ def metadata_cmd(shell: Shell, arg: str):
             file_num = int(arg) - len(shell.directorys)
             blob = shell.files[file_num]
         print(json.dumps(blob.metadata, indent=4, sort_keys=True))
-    except:
+    except (ValueError, IndexError):
         raise Exception("You need to insert a number: metadata <num>")
 
 
-command_list.append(Cmd("ls", ls_cmd,              "^ls$",
+def __download_cmd(shell: Shell, mode: str, blob_num: str):
+    if mode == "all":
+        pass
+    elif mode == "content":
+        pass
+    else:
+        raise Exception("Wrong mode all or content")
+
+
+command_list.append(Cmd("ls", __ls_cmd,              "^ls$",
                     "ls - list file/directory in current dir"))
-command_list.append(Cmd("cd", cd_cmd,              "^cd\s(.*)$",
+command_list.append(Cmd("cd", __cd_cmd,              "^cd\s(.*)$",
                     "cd <num> | .. - change current dir"))
-command_list.append(Cmd("metadata", metadata_cmd,  "^metadata\s(.*)$",
+command_list.append(Cmd("metadata", __metadata_cmd,  "^metadata\s(.*)$",
                     "metadata <num> - print metadata of blob"))
