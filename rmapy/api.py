@@ -226,7 +226,7 @@ class Client(object):
         item_url = json.loads(response.text)['url']
         with requests.get(item_url, stream=True) as re:
             with open(file_path, 'wb') as f:
-                for chunk in re.iter_content(chunk_size=8192): 
+                for chunk in re.iter_content(chunk_size=8192):
                     f.write(chunk)
 
     def get_meta_items(self) -> Collection:
