@@ -1,6 +1,6 @@
 import json
 import re
-from os import mkdir
+from os import mkdir, path
 from typing import List
 from rmapy.api import Client
 from rmapy.blob import DIRECTORY, DOCUMENT, Blob, Tree
@@ -15,10 +15,14 @@ class Cmd:
 
 class Shell:
     def __init__(self, tree: Tree, client: Client) -> None:
-        self.WORKING_BLOB: Blob = None
-        self.blobs = tree.root_blobls
+        self.__tree = tree
         self.cmds: List[Cmd] = command_list
         self.client = client
+        self._go_to_root()
+
+    def _go_to_root(self):
+        self.WORKING_BLOB: Blob = None
+        self.blobs = self.__tree.root_blobls
         self._refresh_work_dir()
 
     def _refresh_work_dir(self):
@@ -89,7 +93,7 @@ def __download_cmd(shell: Shell, mode: str, blob_num: str):
             for comp in blob.blob_components:
                 path = comp.split(":")[0]
                 file_path = f"{download_dir}/{comp.split(':')[2].replace('/', '_')}"
-                print (f"Download: {file_path}")
+                print(f"Download: {file_path}")
                 shell.client.download_item(path, file_path)
         elif mode == "content":
             pass
@@ -97,6 +101,13 @@ def __download_cmd(shell: Shell, mode: str, blob_num: str):
             raise Exception("Wrong mode all or content")
     except (ValueError, AssertionError):
         raise Exception("You need to insert file number")
+
+
+def __upload_cmd(shell: Shell, file_path: str):
+    file_name = path.basename(file_path)
+    shell.client.upload_file(file_path, file_name)
+    print("FILE UPLOADED")
+    shell._go_to_root()
 
 
 command_list.append(Cmd("ls", __ls_cmd,              "^ls$",
@@ -107,3 +118,5 @@ command_list.append(Cmd("metadata", __metadata_cmd,  "^metadata\s(.*)$",
                     "metadata <num> - print metadata of blob"))
 command_list.append(Cmd("download", __download_cmd,  "^download\s(all|content)\s(.*)$",
                     "download [all | content] <num> - download blob"))
+command_list.append(Cmd("upload", __upload_cmd,  "^upload\s(.*)$",
+                    "upload <file_path> - upload file to root directory"))

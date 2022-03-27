@@ -20,11 +20,9 @@ rmapy = Client()
 rmapy.is_auth()
 rmapy.renew_token()
 
-rmapy.upload_file("/home/giuseppe/Scrivania/test.epub", "funziona_epub")
-rmapy.upload_file("/home/giuseppe/Scrivania/ref_12986035.pdf", "funziona_pdf")
 
-#rmapy.refresh_tree()
-# tree = rmapy.reload_tree_cache()
+# rmapy.refresh_tree()
+tree = rmapy.reload_tree_cache()
 
-# shell = Shell(tree, rmapy)
-# shell.start_shell()
+shell = Shell(tree, rmapy)
+shell.start_shell()
