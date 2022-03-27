@@ -1,3 +1,4 @@
+import base64
 import requests
 import json
 from logging import getLogger
@@ -86,7 +87,8 @@ class Client(object):
             _headers["Authorization"] = f"Bearer {token}"
         for k in headers.keys():
             _headers[k] = headers[k]
-        log.debug(url, _headers)
+        log.debug(url)
+        log.debug(_headers)
         r = requests.request(method, url,
                              json=body,
                              data=data,
@@ -445,6 +447,36 @@ class Client(object):
         if res.ok:
             self.update_metadata(folder)
         return True
+
+    @staticmethod
+    def __base_64_encode(msg: str):
+        message_bytes = msg.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        base64_message = base64_bytes.decode('ascii')
+
+        return base64_message
+
+    def upload_file(self, filepath: str, file_name: str):
+        ext = filepath.split(".")[-1]
+        headers = {}
+
+        if ext == "epub":
+            headers["content-type"] = "application/epub+zip"
+        elif ext == "pdf":
+            headers["content-type"] = "application/pdf"
+        else:
+            raise Exception("Wrong file type")
+
+        headers["rm-source"] = "DropZone"
+        headers["rm-meta"] = Client.__base_64_encode(
+            '{"file_name":"' + file_name + '"}\n')
+        
+        with open(filepath, "rb") as file_upload:
+            self.request("POST",
+                "https://internal.cloud.remarkable.com/doc/v2/files",
+                headers=headers,
+                data=file_upload,
+            )
 
     @staticmethod
     def check_response(response: requests.Response):

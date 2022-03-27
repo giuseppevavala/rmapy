@@ -1,4 +1,4 @@
-from logging import INFO, getLogger, StreamHandler, Formatter
+from logging import INFO, DEBUG, getLogger, StreamHandler, Formatter
 from rmapy.api import Client
 from rmapy.shell import Shell
 
@@ -19,8 +19,12 @@ rmapy = Client()
 
 rmapy.is_auth()
 rmapy.renew_token()
-#rmapy.refresh_tree()
-tree = rmapy.reload_tree_cache()
 
-shell = Shell(tree, rmapy)
-shell.start_shell()
+rmapy.upload_file("/home/giuseppe/Scrivania/test.epub", "funziona_epub")
+rmapy.upload_file("/home/giuseppe/Scrivania/ref_12986035.pdf", "funziona_pdf")
+
+#rmapy.refresh_tree()
+# tree = rmapy.reload_tree_cache()
+
+# shell = Shell(tree, rmapy)
+# shell.start_shell()
